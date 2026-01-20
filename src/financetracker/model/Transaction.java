@@ -1,6 +1,7 @@
 package financetracker.model;
 
-
+import java.util.Objects;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -16,6 +17,9 @@ public class Transaction {
     public Transaction(int id, double amount, Category category, String description, LocalDate date) {
         if (id < 0) {
             throw new IllegalArgumentException("ID должен быть неотрицательным");
+        }
+        if (category == null) {
+            throw new IllegalArgumentException("Категория не может быть null");
         }
         this.id = id;
         setAmount(amount);
@@ -33,14 +37,14 @@ public class Transaction {
         this(id, amount, category, "", date);
     }
 
-    public  void setAmount(double amount) {
+    public void setAmount(double amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Сумма должна быть положительной");
         }
         this.amount = amount;
     }
 
-    public  void setCategory(Category category) {
+    public void setCategory(Category category) {
         if (category == null) {
             throw new IllegalArgumentException("Категория не может быть null");
         }
@@ -76,6 +80,23 @@ public class Transaction {
         return category.isIncome() ? amount : -amount;
     }
 
+    public int getYear() {
+        return date.getYear();
+    }
+
+    public int getMonth() {
+        return date.getMonthValue();
+    }
+
+    public boolean isValid() {
+        return id >= 0 &&
+                amount > 0 &&
+                category != null &&
+                category.isValid() &&
+                date != null &&
+                !date.isAfter(LocalDate.now());
+    }
+
     public boolean isIncome() {
         return category.isIncome();
     }
@@ -84,41 +105,96 @@ public class Transaction {
         return category.isExpense();
     }
 
+    public boolean hasSameContent(Transaction other) {
+        if (other == null) return false;
+        return Double.compare(this.amount, other.amount) == 0 &&
+                this.category.equals(other.category) &&
+                this.description.equals(other.description) &&
+                this.date.equals(other.date);
+    }
+
     public String getDisplayString() {
-        return String.format("%s: %.2f руб. (%s) - %s",
+        String sign = isIncome() ? "+" : "-";
+        return String.format("%s: %s%.2f руб. (%s) - %s",
                 date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                sign,
                 amount,
                 category.getDisplayName(),
                 description.isEmpty() ? "без описания" : description);
     }
+
+
+    public Transaction copy () {
+        return new Transaction(this.id, this.amount, this.category, this.description, this.date);
+    }
+
+
+    public Transaction copyWithNewId(int newId) {
+        return new Transaction(newId, this.amount, this.category, this.description, this.date);
+    }
+
+
 
     public String toFileString() {
         return String.format("%d|%.2f|%d|%s|%s",
                 id,
                 amount,
                 category.getId(),
-                description.replace("|", "\\|"),
+                description.replace("|", "\\|").replace("|", "\\|"),
                 date.toString());
     }
 
     public static  Transaction fromFileString(String line, Map <Integer, Category> categoryMap) {
-        String [] parts = line.split("\\|", -1);
+        try {
+            String[] parts = line.split("\\|", -1);
 
-        if (parts.length != 5) {
-            throw new IllegalArgumentException("Некорректный формат строки: " + line);
+            if (parts.length != 5) {
+                throw new IllegalArgumentException("Некорректный формат строки: " + line);
+            }
+            int id = Integer.parseInt(parts[0]);
+            double amount = Double.parseDouble(parts[1]);
+            int categoryId = Integer.parseInt(parts[2]);
+            String description = parts[3].replace("\\|", "|");
+            LocalDate date = LocalDate.parse(parts[4]);
+
+            Category category = categoryMap.get(categoryId);
+            if (category == null) {
+
+                System.err.println("Внимание: категория с ID= " + categoryId + " не найдена. Создана временная.");
+                category = new Category(categoryId, "Неизвестная (ID:" + categoryId + ")", TransactionType.EXPENSE);
+            }
+            return new Transaction(id, amount, category, description, date);
+
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Ошибка преобразования числа в строке: " + line, e);
+        } catch (DateTimeException e) {
+            throw new IllegalArgumentException("Ошибка преобразования даты в строке: " + line, e);
         }
-        int id = Integer.parseInt(parts[0]);
-        double amount = Double.parseDouble(parts[1]);
-        int categoryId = Integer.parseInt(parts[2]);
-        String description = parts[3].replace("\\|", "|");
-        LocalDate date = LocalDate.parse(parts[4]);
+    }
 
-        Category category = categoryMap.get(categoryId);
+    public static Transaction createIncome(int id, double amount, Category category, String description, LocalDate date) {
         if (category == null) {
-            category = new Category(categoryId, "Неизвестная", TransactionType.EXPENSE);
+            throw new IllegalArgumentException("Категория не должна быть null");
+        }
+        if (!category.isIncome()) {
+            throw new IllegalArgumentException("Категория должна быть типом INCOME");
+        }
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Сумма должна быть положительной");
         }
         return new Transaction(id, amount, category, description, date);
     }
+
+    public static Transaction createExpense(int id, double amount, Category category, String description, LocalDate date) {
+        if (category == null) {
+            throw new IllegalArgumentException("Категория не должна быть null");
+        }
+        if (!category.isExpense()) {
+            throw new IllegalArgumentException("Категория должна быть типом EXPENSE");
+        }
+        return new Transaction(id, amount, category, description, date);
+    }
+
 
     @Override
     public boolean equals(Object obj) {
