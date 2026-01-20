@@ -140,7 +140,7 @@ public class Transaction {
                 id,
                 amount,
                 category.getId(),
-                description.replace("|", "\\|").replace("|", "\\|"),
+                description.replace("|", "\\|"),
                 date.toString());
     }
 
@@ -192,6 +192,11 @@ public class Transaction {
         if (!category.isExpense()) {
             throw new IllegalArgumentException("Категория должна быть типом EXPENSE");
         }
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Сумма должна быть положительной");
+        }
+
         return new Transaction(id, amount, category, description, date);
     }
 
