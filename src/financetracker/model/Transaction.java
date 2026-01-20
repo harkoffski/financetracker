@@ -18,9 +18,7 @@ public class Transaction {
         if (id < 0) {
             throw new IllegalArgumentException("ID должен быть неотрицательным");
         }
-        if (category == null) {
-            throw new IllegalArgumentException("Категория не может быть null");
-        }
+
         this.id = id;
         setAmount(amount);
         setCategory(category);
@@ -87,6 +85,9 @@ public class Transaction {
     public int getMonth() {
         return date.getMonthValue();
     }
+    public String getFormatteddate() {
+        return date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    }
 
     public boolean isValid() {
         return id >= 0 &&
@@ -115,12 +116,13 @@ public class Transaction {
 
     public String getDisplayString() {
         String sign = isIncome() ? "+" : "-";
+        String desc = description.isEmpty() ? "без описания" : description;
         return String.format("%s: %s%.2f руб. (%s) - %s",
                 date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                 sign,
                 amount,
-                category.getDisplayName(),
-                description.isEmpty() ? "без описания" : description);
+                desc,
+                category.getName());
     }
 
 
