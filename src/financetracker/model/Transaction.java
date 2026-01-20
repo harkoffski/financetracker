@@ -82,6 +82,7 @@ public class Transaction {
         return date.getYear();
     }
 
+
     public int getMonth() {
         return date.getMonthValue();
     }
