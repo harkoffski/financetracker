@@ -48,7 +48,7 @@ public class FileHandler {
 
 
         } catch (IOException e) {
-            System.err.println("" + e.getMessage());
+            System.err.println("Ошибка при создании файлов: " + e.getMessage());
             e.printStackTrace();
         }
     }
