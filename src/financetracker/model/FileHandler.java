@@ -16,6 +16,7 @@ public class FileHandler {
         this.categoriesFilePath = categoriesFilePath;
         this.transactionsFilePath = transactionsFilePath;
         ensureFilesExist();
+
     }
 
     private void ensureFilesExist() {
