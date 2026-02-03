@@ -21,7 +21,7 @@ public class Menu {
 
     public static final int MAIN_MENU = 0;
     public static final int ADD_TRANSACTION = 1;
-    public static final int VIEW_TRANSACTION = 2;
+    public static final int VIEW_TRANSACTIONS = 2;
     public static final int MANAGE_CATEGORIES = 3;
     public static final int STATISTICS = 4;
     public static final int  EXPORT_DATA = 5;
