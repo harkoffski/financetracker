@@ -8,13 +8,16 @@ import financetracker.model.TransactionType;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class Menu {
     private Scanner scanner;
+    private BufferedReader reader;
     private FinanceManager financeManager;
 
     public  Menu(FinanceManager financeManager) {
-
+        this.reader = new BufferedReader(new InputStreamReader(System.in));
         this.scanner = new Scanner(System.in);
         this.financeManager = financeManager;
     }
@@ -34,13 +37,28 @@ public class Menu {
     public int readInt() {
         while (true) {
             try {
-                return Integer.parseInt(scanner.nextLine().trim());
-            } catch (NumberFormatException e) {
-                System.out.println("Ошибка: введите число:");
+                System.out.print(">>> ");
+                String input = reader.readLine();
+                if (input == null) {
+                    // Произошло что-то странное, например, конец потока
+                    System.out.println("Ошибка ввода. Попробуйте снова.");
+                    continue;
+                }
+                input = input.trim();
+                if (input.isEmpty()) {
+                    System.out.println("Ошибка: ввод не может быть пустым.");
+                    continue;
+                }
+                return Integer.parseInt(input);
+            } catch (Exception e) {
+                System.out.println("Ошибка: введите целое число.");
             }
         }
     }
 
+    public String readLine() {
+        return scanner.nextLine().trim();
+    }
 
     public int showMainMenu() {
         System.out.println("\n--- ФИНАНСОВЫЙ ПОМОЩНИК ---");
@@ -83,6 +101,7 @@ public class Menu {
         System.out.println("3. Статистика по категориям");
         System.out.println("4. Крупнейшие расходы");
         System.out.println("5. Последние транзакции");
+        System.out.println("6. Визуализация расходов");
         System.out.println("0. Назад");
         System.out.print("\nВыберите пункт: ");
 
@@ -296,23 +315,31 @@ public class Menu {
     }
 
 
+    private void waitForEnter() {
+        System.out.print("Нажмите Enter для продолжения...");
+
+        scanner.nextLine();
+    }
+
     public void showMessage(String message) {
         System.out.println("\n" + message);
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        waitForEnter();
+    }
+
+    public void showExit(String messageExit) {
+        System.out.println("\n" + messageExit);
     }
 
     public void showError(String error) {
-        System.out.println("\n Ошибка" + error);
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        System.out.println("\n ОШИБКА: " + error);
+        waitForEnter();
     }
 
     public void showSuccess(String message) {
-        System.out.println("\n•" + message);
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        System.out.println("\n " + message);
+        waitForEnter();
     }
+
 
     public void displayFinancialSummary(Map<String, Object> summary) {
         System.out.println("\n=== ФИНАНСОВАЯ СВОДКА ===");

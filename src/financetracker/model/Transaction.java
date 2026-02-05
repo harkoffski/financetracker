@@ -155,7 +155,8 @@ public class Transaction {
                 throw new IllegalArgumentException("Некорректный формат строки: " + line);
             }
             int id = Integer.parseInt(parts[0]);
-            double amount = Double.parseDouble(parts[1]);
+            String amountStr = parts[1].replace(',', '.'); // ← заменяем запятую на точку
+            double amount = Double.parseDouble(amountStr);
             int categoryId = Integer.parseInt(parts[2]);
             String description = parts[3].replace("\\|", "|");
             LocalDate date = LocalDate.parse(parts[4]);

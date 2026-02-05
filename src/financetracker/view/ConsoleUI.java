@@ -43,7 +43,7 @@ public class ConsoleUI {
                     break;
                 case Menu.EXIT:
                     running = false;
-                    menu.showMessage("Спасибо за использование! До свидания!");
+                    menu.showExit("Спасибо за использование! До свидания!");
                     break;
                 default:
                     menu.showError("Неверный выбор! Попробуйте снова.");
@@ -305,6 +305,25 @@ public class ConsoleUI {
                 List<Transaction> recentTransactions = financeManager.getRecentTransactions(count);
                 menu.displayTransactions(recentTransactions, "ПОСЛЕДНИЕ " + count + " ТРАНЗАКЦИЙ");
                 break;
+            case 6:
+                System.out.print("\nВведите год для анализа (например, 2026): ");
+                int analysisYear = menu.readInt();
+
+                LocalDate chartStartDate = LocalDate.of(analysisYear, 1, 1);
+                LocalDate chartEndDate = LocalDate.of(analysisYear, 12, 31);
+
+                Map<String, Double> stats = financeManager.getCategoryStatistics(
+                        chartStartDate,
+                        chartEndDate,
+                        TransactionType.EXPENSE
+                );
+
+                if (stats.isEmpty()) {
+                    menu.showMessage("Нет расходов за " + analysisYear + " год");
+                } else {
+                    StatisticsDisplay.displayBarChart(stats, "РАСХОДЫ ПО КАТЕГОРИЯМ (" + analysisYear + ")");
+                }
+                break;
             case 0:
                 return;
             default:
@@ -326,7 +345,7 @@ public class ConsoleUI {
         switch (choice) {
             case 1:
                 System.out.print("Введите путь для сохранения (например: data/export.csv): ");
-                String filePath = new java.util.Scanner(System.in).nextLine().trim();
+                String filePath = menu.readLine();
                 if (financeManager.exportTransactionsToCSV(filePath)) {
                     menu.showSuccess("Данные успешно экспортированы в " + filePath);
                 } else {
@@ -338,7 +357,7 @@ public class ConsoleUI {
                 LocalDate startDate = parseDate(dateRange[0]);
                 LocalDate endDate = parseDate(dateRange[1]);
                 System.out.print("Введите путь для сохранения (например: data/export.csv): ");
-                String path = new java.util.Scanner(System.in).nextLine().trim();
+                String path = menu.readLine();
                 if (financeManager.exportTransactionsToCSV(path, startDate, endDate)) {
                     menu.showSuccess("Данные успешно экспортированы в " + path);
                 } else {
