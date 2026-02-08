@@ -13,7 +13,7 @@ public class StatisticsDisplay {
         }
 
         System.out.println("\n╔══════════════════════════════════════════════════════════╗");
-        System.out.println("  ║ " + centerText(title, 54) + " ║");
+        System.out.println("  ║ " + centerText(title, 56) + " ║");
         System.out.println("  ╚══════════════════════════════════════════════════════════╝");
 
         // Находим максимальное значение для масштабирования
@@ -51,7 +51,8 @@ public class StatisticsDisplay {
     // Вспомогательные методы для красивого вывода
     private static String centerText(String text, int width) {
         int padding = (width - text.length()) / 2;
-        return " ".repeat(Math.max(0, padding)) + text + " ".repeat(Math.max(0, width - text.length() - padding));
+        if (padding < 0) padding = 0;
+        return " ".repeat(padding) + text + " ".repeat(Math.max(0, width - text.length() - padding));
     }
 
     private static String truncate(String text, int maxLength) {

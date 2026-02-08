@@ -1,5 +1,7 @@
 package financetracker.model;
 
+import java.nio.charset.StandardCharsets;
+
 public class Category {
     private final int id;
     private String name;

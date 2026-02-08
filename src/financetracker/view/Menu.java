@@ -18,7 +18,7 @@ public class Menu {
 
     public  Menu(FinanceManager financeManager) {
         this.reader = new BufferedReader(new InputStreamReader(System.in));
-        this.scanner = new Scanner(System.in);
+        this.scanner = new Scanner(System.in, "UTF-8");
         this.financeManager = financeManager;
     }
 

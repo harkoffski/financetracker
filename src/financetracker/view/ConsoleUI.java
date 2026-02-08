@@ -272,7 +272,7 @@ public class ConsoleUI {
                 menu.displayFinancialSummary(summary);
                 break;
             case 2:
-                System.out.println("\\nВведите год для статистики (например, 2025): ");
+                System.out.println("\nВведите год для статистики (например, 2025): ");
                 int year = menu.readInt();
                 Map<String, Map<TransactionType, Double>> monthlyStats = financeManager.getMonthlyStatistics(year);
                 menu.displayMonthlyStatistics(monthlyStats, year);
@@ -306,22 +306,26 @@ public class ConsoleUI {
                 menu.displayTransactions(recentTransactions, "ПОСЛЕДНИЕ " + count + " ТРАНЗАКЦИЙ");
                 break;
             case 6:
-                System.out.print("\nВведите год для анализа (например, 2026): ");
-                int analysisYear = menu.readInt();
+                System.out.println("\n1. За год");
+                System.out.println("2. За месяц");
+                System.out.print("Выберите период: ");
+                int periodChoice = menu.readInt();
+                String[] dateRanges = menu.requestDateRange();
+                LocalDate startDates = parseDate(dateRanges[0]);
+                LocalDate endDates = parseDate(dateRanges[1]);
 
-                LocalDate chartStartDate = LocalDate.of(analysisYear, 1, 1);
-                LocalDate chartEndDate = LocalDate.of(analysisYear, 12, 31);
-
-                Map<String, Double> stats = financeManager.getCategoryStatistics(
-                        chartStartDate,
-                        chartEndDate,
-                        TransactionType.EXPENSE
-                );
-
-                if (stats.isEmpty()) {
-                    menu.showMessage("Нет расходов за " + analysisYear + " год");
+                if (periodChoice == 1) {
+                    System.out.print("Введите год: ");
+                    int years = menu.readInt();
+                    startDates = LocalDate.of(years, 1, 1);
+                    endDates = LocalDate.of(years, 12, 31);
                 } else {
-                    StatisticsDisplay.displayBarChart(stats, "РАСХОДЫ ПО КАТЕГОРИЯМ (" + analysisYear + ")");
+                    System.out.print("Введите год: ");
+                    int years = menu.readInt();
+                    System.out.print("Введите месяц (1-12): ");
+                    int month = menu.readInt();
+                    startDate = LocalDate.of(years, month, 1);
+                    endDate = startDate.plusMonths(1).minusDays(1);
                 }
                 break;
             case 0:

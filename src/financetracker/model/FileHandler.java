@@ -5,6 +5,9 @@ import java.nio.file.*;
 import java.util.*;
 
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
 public class FileHandler {
     private final String categoriesFilePath;
     private final String transactionsFilePath;
@@ -17,7 +20,10 @@ public class FileHandler {
         this.transactionsFilePath = transactionsFilePath;
         ensureFilesExist();
 
+
     }
+
+
 
     private void ensureFilesExist() {
 
@@ -75,9 +81,16 @@ public class FileHandler {
     }
 
     public void saveCategories(List<Category> categories) {
-        try {
-            Path path = Paths.get(categoriesFilePath);
-            Files.write(path, categories.stream().map(Category::toFileString).collect(java.util.stream.Collectors.toList()));
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(categoriesFilePath),
+                        StandardCharsets.UTF_8
+                ))) {
+
+            for (Category category : categories) {
+                writer.write(category.toFileString());
+                writer.newLine();
+            }
         } catch (IOException e) {
             System.err.println("Ошибка при сохранении категорий: " + e.getMessage());
         }
@@ -92,7 +105,7 @@ public class FileHandler {
         if (!Files.exists(path) || !Files.isReadable(path)) {
             return categories;
         }
-        try(BufferedReader reader = Files.newBufferedReader(path)) {
+        try(BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.trim().isEmpty()) {
@@ -117,17 +130,17 @@ public class FileHandler {
 
 
     public void saveTransactions(List<Transaction> transactions) {
-        try {
-            Path path = Paths.get(transactionsFilePath);
-            List<String> lines = new ArrayList<>();
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(transactionsFilePath),
+                        StandardCharsets.UTF_8
+                ))) {
 
             for (Transaction transaction : transactions) {
-                lines.add(transaction.toFileString());
-
+                writer.write(transaction.toFileString());
+                writer.newLine();
                 lastTransactionId = Math.max(lastTransactionId, transaction.getId());
-
             }
-            Files.write(path, lines);
         } catch (IOException e) {
             System.err.println("Ошибка при сохранении транзакций: " + e.getMessage());
         }
@@ -141,7 +154,7 @@ public class FileHandler {
         if (!Files.exists(path) || !Files.isReadable(path)) {
             return transactions;
         }
-        try(BufferedReader reader = Files.newBufferedReader(path)) {
+        try(BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.trim().isEmpty()) {
@@ -175,13 +188,16 @@ public class FileHandler {
     }
 
     public boolean exportToCSV(List<Transaction> transactions, String exportFilePath) {
-        try {
-            Path path = Paths.get(exportFilePath);
-            List<String> lines = new ArrayList<>();
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(exportFilePath),
+                        StandardCharsets.UTF_8
+                ))) {
 
-            lines.add("ID;Дата;Тип;Категория;Сумма;Описание");
+            writer.write("ID;Дата;Тип;Категория;Сумма;Описание");
+            writer.newLine();
 
-            for(Transaction transaction : transactions) {
+            for (Transaction transaction : transactions) {
                 String type = transaction.isIncome() ? "Доход" : "Расход";
                 String line = String.format("%d;%s;%s;%s;%.2f;%s",
                         transaction.getId(),
@@ -190,16 +206,17 @@ public class FileHandler {
                         transaction.getCategory().getName(),
                         transaction.getAmount(),
                         transaction.getDescription());
-                lines.add(line);
+                writer.write(line);
+                writer.newLine();
             }
-            Files.write(path, lines);
             return true;
-
         } catch (IOException e) {
             System.err.println("Ошибка при экспорте в CSV: " + e.getMessage());
             return false;
         }
     }
+
+
     public Map<String, Object> getFileStats() {
         Map<String, Object> stats = new HashMap<>();
 
@@ -228,13 +245,16 @@ public class FileHandler {
     }
 
     public void clearTransactions() {
-        try {
-            Path path = Paths.get(transactionsFilePath);
-            Files.write(path, new byte[0]);
-            lastTransactionId = 0;
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(transactionsFilePath),
+                        StandardCharsets.UTF_8
+                ))) {
+
         } catch (IOException e) {
             System.err.println("Ошибка при очистке файла транзакций: " + e.getMessage());
         }
+        lastTransactionId = 0;
     }
 }
 

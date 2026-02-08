@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 
+
+
 public class FinanceManager {
     private List<Category> categories;
     private List<Transaction> transactions;

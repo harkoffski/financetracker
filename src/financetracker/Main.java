@@ -4,6 +4,10 @@ import financetracker.model.FileHandler;
 import financetracker.model.FinanceManager;
 import financetracker.view.ConsoleUI;
 
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+
 public class Main {
     public static void main(String[] args) {
         System.out.println("╔══════════════════════════════════════════════════════════╗");
@@ -11,19 +15,46 @@ public class Main {
         System.out.println("╚══════════════════════════════════════════════════════════╝");
         System.out.println();
 
+
+        boolean isIntelliJ = System.getProperty("java.class.path").contains("idea_rt.jar");
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+
+
+
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            try {
+
+                ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "chcp 65001");
+                pb.inheritIO().start().waitFor();
+
+
+                Thread.sleep(500);
+            } catch (Exception e) {
+                System.err.println("Не удалось настроить кодовую страницу. Используйте: chcp 65001");
+            }
+        }
+
+
+
         try {
-            // Показываем информацию о запуске
+
+
+
+
+
+
+
             System.out.println("Инициализация приложения...");
 
-            // Создаем обработчик файлов
+
             FileHandler fileHandler = new FileHandler("data/categories.txt", "data/transactions.txt");
             System.out.println("Файловый менеджер инициализирован");
 
-            // Создаем менеджер финансов
+
             FinanceManager financeManager = new FinanceManager(fileHandler);
             System.out.println("Финансовый менеджер инициализирован");
 
-            // Загружаем статистику
+
             int categoriesCount = financeManager.getAllCategories().size();
             int transactionsCount = financeManager.getAllTransactions().size();
             double balance = financeManager.getTotalBalance();
@@ -36,10 +67,10 @@ public class Main {
             System.out.println("\nЗапуск интерфейса...");
             System.out.println("──────────────────────────────────────────────────────");
 
-            // Создаем консольный интерфейс
+
             ConsoleUI consoleUI = new ConsoleUI(financeManager);
 
-            // Запускаем приложение
+
             consoleUI.start();
             System.out.println("Приложение завершено. Все данные сохранены.");
 
@@ -56,7 +87,7 @@ public class Main {
             try {
                 System.in.read();
             } catch (Exception ignored) {
-                // Игнорируем ошибки при выходе
+
             }
         }
     }

@@ -118,12 +118,12 @@ public class Transaction {
     public String getDisplayString() {
         String sign = isIncome() ? "+" : "-";
         String desc = description.isEmpty() ? "без описания" : description;
-        return String.format("%s: %s%.2f руб. (%s) - %s",
-                date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+        return String.format("%s: %s%.2f руб. - %s (%s)",
+                getFormatteddate(),
                 sign,
                 amount,
-                desc,
-                category.getName());
+                category.getName(),
+                desc);
     }
 
 
@@ -137,42 +137,47 @@ public class Transaction {
     }
 
 
+    private static final String SEPARATOR = "|";
 
     public String toFileString() {
-        return String.format("%d|%.2f|%d|%s|%s",
-                id,
-                amount,
-                category.getId(),
-                description.replace("|", "\\|"),
+        return String.format("%d%s%.2f%s%d%s%s%s%s",
+                id, SEPARATOR,
+                amount, SEPARATOR,
+                category.getId(), SEPARATOR,
+                description.replace(SEPARATOR, "\\" + SEPARATOR), SEPARATOR,
                 date.toString());
     }
 
-    public static  Transaction fromFileString(String line, Map <Integer, Category> categoryMap) {
+    public static Transaction fromFileString(String line, Map<Integer, Category> categoryMap) {
         try {
-            String[] parts = line.split("\\|", -1);
+            // Восстанавливаем экранированные разделители перед split
+            line = line.replace("\\" + SEPARATOR, "\u0001"); // Временная замена
+            String[] parts = line.split("\\" + SEPARATOR, -1);
+
+            for (int i = 0; i < parts.length; i++) {
+                parts[i] = parts[i].replace("\u0001", SEPARATOR); // Восстанавливаем
+            }
 
             if (parts.length != 5) {
-                throw new IllegalArgumentException("Некорректный формат строки: " + line);
+                throw new IllegalArgumentException("Некорректный формат строки (требуется 5 полей): " + line);
             }
+
             int id = Integer.parseInt(parts[0]);
-            String amountStr = parts[1].replace(',', '.'); // ← заменяем запятую на точку
+            String amountStr = parts[1].replace(',', '.');
             double amount = Double.parseDouble(amountStr);
             int categoryId = Integer.parseInt(parts[2]);
-            String description = parts[3].replace("\\|", "|");
+            String description = parts[3];
             LocalDate date = LocalDate.parse(parts[4]);
 
             Category category = categoryMap.get(categoryId);
             if (category == null) {
-
-                System.err.println("Внимание: категория с ID= " + categoryId + " не найдена. Создана временная.");
+                System.err.println("Внимание: категория с ID=" + categoryId + " не найдена. Создана временная.");
                 category = new Category(categoryId, "Неизвестная (ID:" + categoryId + ")", TransactionType.EXPENSE);
             }
             return new Transaction(id, amount, category, description, date);
 
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Ошибка преобразования числа в строке: " + line, e);
-        } catch (DateTimeException e) {
-            throw new IllegalArgumentException("Ошибка преобразования даты в строке: " + line, e);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Ошибка парсинга строки: " + line, e);
         }
     }
 
